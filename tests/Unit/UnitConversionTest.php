@@ -2,45 +2,129 @@ use Tests\TestCase;
 
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Controllers;
 
+use Tests\TestCase;
+use App\Http\Controllers\ConvertLengthController;
+use App\Http\Controllers\ConvertSpeedController;
+use App\Http\Controllers\ConvertTemperatureController;
+use App\Http\Controllers\ConvertVolumeController;
+use App\Http\Controllers\ConvertWeightController;
 
-class UnitConversionTest extends TestCase
+class ConvertControllersTest extends TestCase
 {
-    public function testLengthConversion()
+    // ConvertLengthController tests
+    public function testConvertLengthController()
     {
-        $this->assertConversion('/convert/length/10/meters', 32.8084);
-        $this->assertConversion('/convert/length/20/feet', 6.096);
+        $controller = new ConvertLengthController();
+        $response = $controller->__invoke(5, 'meters');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(16.4042, $result['result']);
+
+        $response = $controller->__invoke(10, 'feet');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(3.048, $result['result']);
+
+        $response = $controller->__invoke('abc', 'meters');
+        $response->assertJson(['error' => 'The value must be numeric'])
+            ->assertStatus(400);
+
+        $response = $controller->__invoke(10, 'invalid_unit');
+        $response->assertJson(['error' => 'Unrecognized unit'])
+            ->assertStatus(400);
     }
 
-    public function testWeightConversion()
+    // ConvertSpeedController tests
+    public function testConvertSpeedController()
     {
-        $this->assertConversion('/convert/weight/10/kilograms', 22.0462);
-        $this->assertConversion('/convert/weight/20/pounds', 9.07184);
+        $controller = new ConvertSpeedController();
+        $response = $controller->__invoke(100, 'kilometers');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(62.1371, $result['result']);
+
+        $response = $controller->__invoke(60, 'miles');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(96.5604, $result['result']);
+
+        $response = $controller->__invoke('abc', 'kilometers');
+        $response->assertJson(['error' => 'El valor debe ser numérico'])
+            ->assertStatus(400);
+
+        $response = $controller->__invoke(50, 'invalid_unit');
+        $response->assertJson(['error' => 'Unidad no reconocida'])
+            ->assertStatus(400);
     }
 
-    public function testTemperatureConversion()
+    // ConvertTemperatureController tests
+    public function testConvertTemperatureController()
     {
-        $this->assertConversion('/convert/temperature/0/celsius', 32);
-        $this->assertConversion('/convert/temperature/32/fahrenheit', 0);
+        $controller = new ConvertTemperatureController();
+        $response = $controller->__invoke(100, 'celsius');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(212, $result['result']);
+
+        $response = $controller->__invoke(212, 'fahrenheit');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(100, $result['result']);
+
+        $response = $controller->__invoke('abc', 'celsius');
+        $response->assertJson(['error' => 'El valor debe ser numérico'])
+            ->assertStatus(400);
+
+        $response = $controller->__invoke(50, 'invalid_unit');
+        $response->assertJson(['error' => 'Unidad no reconocida'])
+            ->assertStatus(400);
     }
 
-    public function testVolumeConversion()
+    // ConvertVolumeController tests
+    public function testConvertVolumeController()
     {
-        $this->assertConversion('/convert/volume/10/liters', 2.64172);
-        $this->assertConversion('/convert/volume/5/gallons', 18.9271);
+        $controller = new ConvertVolumeController();
+        $response = $controller->__invoke(10, 'liters');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(2.64172, $result['result']);
+
+        $response = $controller->__invoke(5, 'gallons');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(18.927, $result['result']);
+
+        $response = $controller->__invoke('abc', 'liters');
+        $response->assertJson(['error' => 'El valor debe ser numérico'])
+            ->assertStatus(400);
+
+        $response = $controller->__invoke(50, 'invalid_unit');
+        $response->assertJson(['error' => 'Unidad no reconocida'])
+            ->assertStatus(400);
     }
 
-    public function testSpeedConversion()
+    // ConvertWeightController tests
+    public function testConvertWeightController()
     {
-        $this->assertConversion('/convert/speed/100/kilometers', 62.1371);
-        $this->assertConversion('/convert/speed/50/miles', 80.4672);
-    }
+        $controller = new ConvertWeightController();
+        $response = $controller->__invoke(10, 'kilograms');
+        $result = json_decode($response->getContent(), true);
 
-    private function assertConversion($url, $expectedResult)
-    {
-        $response = $this->get($url);
-        $response->assertStatus(200)
-            ->assertJson(['result' => $expectedResult]);
+        $this->assertEquals(22.0462, $result['result']);
+
+        $response = $controller->__invoke(5, 'pounds');
+        $result = json_decode($response->getContent(), true);
+
+        $this->assertEquals(2.26796, $result['result']);
+
+        $response = $controller->__invoke('abc', 'kilograms');
+        $response->assertJson(['error' => 'El valor debe ser numérico'])
+            ->assertStatus(400);
+
+        $response = $controller->__invoke(50, 'invalid_unit');
+        $response->assertJson(['error' => 'Unidad no reconocida'])
+            ->assertStatus(400);
     }
 }
